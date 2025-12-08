@@ -233,17 +233,17 @@ export default function PropertyTable({ rows }) {
 
           <TableBody>
             {paginatedRows.map((row, index) => {
-              const isFlagged = flaggedRows[row.id];
-
+              const isFlagged = flaggedRows[row._id];
+              console.log("Rendering row:", row._id, "Flagged:", isFlagged);
               return (
                 <TableRow
-                  key={row.id + "-" + index}
+                  key={row._id + "-" + index}
                   hover
                   sx={{
                     cursor: "pointer",
                     backgroundColor: isFlagged ? "#fff8e1" : "inherit",
                   }}
-                  onClick={() => navigate(`/properties/detail`)}
+                  onClick={() => navigate(`/properties/detail/${row._id}`)}
                 >
                   <TableCell
                     sx={{ ...bodyCell, width: 70 }}
@@ -252,11 +252,11 @@ export default function PropertyTable({ rows }) {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
                       <Checkbox
                         size="small"
-                        checked={!!selectedRows[row.id]}
-                        onChange={() => toggleCheckbox(row.id)}
+                        checked={!!selectedRows[row._id]}
+                        onChange={() => toggleCheckbox(row._id)}
                       />
 
-                      <IconButton size="small" onClick={() => toggleFlag(row.id)}>
+                      <IconButton size="small" onClick={() => toggleFlag(row._id)}>
                         {isFlagged ? (
                           <FlagIcon sx={{ color: "#172781", fontSize: 18 }} />
                         ) : (

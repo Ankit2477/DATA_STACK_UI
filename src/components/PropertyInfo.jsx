@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { PropertyTable } from "./SubComponents/PropertyTable";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { Stack, Box, Typography, Button, Grid, Divider } from "@mui/material";
@@ -6,6 +7,8 @@ import AntSwitch from "./SubComponents/Buttons/AntSwitch";
 import axiosClient from "../utils/axiosClient";
 
 export default function PropertyInfo() {
+  const { id } = useParams();
+
   const [edpData] = useState({
     source: "EDP",
     date: "11/20/25",
@@ -46,10 +49,11 @@ export default function PropertyInfo() {
     { key: "officeNra", label: "OFFICE NRA", required: true },
     { key: "floors", label: "FLOOR COUNT", required: true },
   ];
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axiosClient.get("/propDetails/getDetails");
+        const res = await axiosClient.get("/propDetails/getDetailById/" + id);
         const records = res.data?.payload || [];
 
         if (records.length > 0) {
@@ -70,43 +74,42 @@ export default function PropertyInfo() {
     };
 
     fetchData();
-  }, []);
+  }, [id]);
 
-  console.log("Rendering PropertyInfo...", sourceData);
+const handleSendToEDP = async () => {
+  const dataToSend = sourceData;
+  const missing = tableHeaders.some(
+    (h) => h.required && !dataToSend[h.key]
+  );
 
-  useEffect(() => console.log("Fetching Source data..."), []);
+  if (missing) {
+    alert("Please fill in all required fields");
+    return;
+  }
 
-  const handleSendToEDP = async () => {
-    const dataToSend = sourceData;
-    const missing = tableHeaders.some(
-      (h) => h.required && !dataToSend[h.key]
-    );
-
-    if (missing) {
-      alert("Please fill in all required fields");
-      return;
-    }
-    const payload = {
-      propertyName: dataToSend.propertyName,
-      grossArea: dataToSend.grossArea,
-      nra: dataToSend.nra,
-      officeNra: dataToSend.officeNra,
-      floorCount: dataToSend.floors, 
-    };
-    try {
-      const res = await axiosClient.post(
-        "/propDetails/details",
-        payload
-      );
-      alert("Data sent to EDP successfully!");
-      console.log("EDP Response:", res.data);
-    } catch (error) {
-      console.error("EDP API Error:", error);
-      alert("Failed to send data to EDP.");
-    }
+  const payload = {
+    propertyId: id,
+    propertyName: dataToSend.propertyName,
+    grossArea: dataToSend.grossArea,
+    nra: dataToSend.nra,
+    officeNra: dataToSend.officeNra,
+    floorCount: dataToSend.floors,
   };
 
+  try {
+    const res = await axiosClient.put(
+      `/propDetails/updatePropertyDetail/${id}`,
+      payload
+    );
 
+    alert("Data sent to EDP successfully!");
+    console.log("EDP Response:", res.data);
+
+  } catch (error) {
+    console.error("EDP API Error:", error);
+    alert("Failed to send data to EDP.");
+  }
+};
 
   return (
     <Box sx={{ minHeight: "100vh", p: 3 }}>
@@ -164,7 +167,7 @@ export default function PropertyInfo() {
                     NRA
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 600 }}>
-                    525,105 SF
+                    { sourceData.nra || "525,105 SF" }
                   </Typography>
                 </Box>
                 <Box sx={{ mb: 3 }}>
@@ -172,7 +175,7 @@ export default function PropertyInfo() {
                     Class
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46" }}>
-                    Class A
+                    {sourceData.propertyClass || "A"}
                   </Typography>
                 </Box>
                 <Box>
@@ -180,7 +183,7 @@ export default function PropertyInfo() {
                     Year Built
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46" }}>
-                    1977
+                    {sourceData.yearBuilt || "1977"}
                   </Typography>
                 </Box>
               </Box>
@@ -192,7 +195,7 @@ export default function PropertyInfo() {
                     Office NRA
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 600 }}>
-                    525,101 SF
+                    {sourceData.officeNra || "525,101 SF"}
                   </Typography>
                 </Box>
                 <Box sx={{ mb: 3 }}>
@@ -200,7 +203,7 @@ export default function PropertyInfo() {
                     Floors
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46" }}>
-                    21
+                    {sourceData.floors || "21"}
                   </Typography>
                 </Box>
                 <Box sx={{ mb: 3 }}>
@@ -208,7 +211,7 @@ export default function PropertyInfo() {
                     Last Renovated
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46" }}>
-                    –
+                    {sourceData.lastRenovated || "2005"}
                   </Typography>
                 </Box>
               </Box>

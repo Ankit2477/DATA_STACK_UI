@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Stack,
@@ -7,6 +7,8 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import axiosClient from "../utils/axiosClient";
 //
 import PropertyInfo from "./PropertyInfo";
 import StackingPlan from "./SubComponents/StackingPlan";
@@ -20,8 +22,36 @@ const dummyProperty = {
 };
 
 export default function PropertyDetailPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [sourceData, setSourceData] = useState({
+    propertyName: "Metropolitan Square",
+    grossArea: "1,200,000", 
+  });
   const [activeTab, setActiveTab] = useState("property");
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await axiosClient.get("/propDetails/getDetailById/" + id);
+      const records = res?.data?.data;
+
+      if (!records) return;
+
+      setSourceData(prev => ({
+        ...prev,
+        propertyName: records.propertyId?.propertyName ?? prev.propertyName,
+        grossArea: records.grossArea ?? prev.grossArea,
+      }));
+
+    } catch (error) {
+      console.log("API ERROR:", error);
+    }
+  };
+
+  fetchData();
+}, [id]);
+
 
   return (
     <Box sx={{ width: "100%", background: "#F6F8F9" }}>
@@ -49,7 +79,7 @@ export default function PropertyDetailPage() {
               Building Name
             </Typography>
             <Typography fontSize={16} fontWeight={600}>
-              {dummyProperty.buildingName}
+              {sourceData.propertyName || dummyProperty.buildingName}
             </Typography>
           </Box>
           <Box>
@@ -64,7 +94,7 @@ export default function PropertyDetailPage() {
                 color: "#1E40AF",
               }}
             >
-              {dummyProperty.address}
+              {sourceData.propertyAddress || dummyProperty.address}
             </Typography>
           </Box>
           <Box>

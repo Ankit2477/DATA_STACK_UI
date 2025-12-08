@@ -21,7 +21,7 @@ function App() {
             <PropertyFilterPage />
           </ProtectedRoute>
         } />
-        <Route path="/properties/detail" element={
+        <Route path="/properties/detail/:id" element={
           <ProtectedRoute>
             <PropertyDetailPageComponent />
           </ProtectedRoute>
