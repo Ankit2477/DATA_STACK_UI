@@ -43,13 +43,13 @@ export default function FloorInfo() {
 
         const mapped = records.map(f => ({
           id: f.floorNumber,
-          floorId: f._id,            // use this to send
+          floorId: f._id,         
           sourceData: {
             floorNumber: f.floorNumber,
             floorName: f.floorName,
             floorSize: f.floorSize,
             slabHeight: f.slabHeight,
-            nra: f.nra || ""          // safe default
+            nra: f.nra || ""     
           }
         }));
 
@@ -64,8 +64,6 @@ export default function FloorInfo() {
   }, [id]);
 
 
-
-  /** update floor table values */
   const handleSourceDataChange = (floorId, newData) => {
     setFloors(prev =>
       prev.map(f =>
@@ -77,26 +75,22 @@ export default function FloorInfo() {
   };
 
   const handleSendToEDP = async (floor) => {
-  try {
-    console.log("Preparing to send floor to EDP:", floor);
-    const payload = {
-      floorId: floor.floorId,
-      floorNumber: floor.sourceData.floorNumber,
-      floorName: floor.sourceData.floorName,
-      floorSize: floor.sourceData.floorSize,
-      slabHeight: floor.sourceData.slabHeight
-    };
+    try {
+      const payload = {
+        floorId: floor.floorId,
+        floorNumber: floor.sourceData.floorNumber,
+        floorName: floor.sourceData.floorName,
+        floorSize: floor.sourceData.floorSize,
+        slabHeight: floor.sourceData.slabHeight
+      };
+      await axiosClient.put("/propDetails/updateFloor/" + id, payload);
 
-    console.log("Sending Payload:", payload);
-
-    await axiosClient.put("/propDetails/updateFloor/" + id, payload);
-
-    alert("Sent to EDP successfully");
-    
-  } catch (err) {
-    console.error("Send to EDP Error", err);
-    alert("Something went wrong");
-  }
+      alert("Sent to EDP successfully");
+      
+    } catch (err) {
+      console.error("Send to EDP Error", err);
+      alert("Something went wrong");
+    }
 };
 
 

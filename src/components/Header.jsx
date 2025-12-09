@@ -10,7 +10,7 @@ const Header = () => {
   return (
     <>
       <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: "1px solid #e0e0e0" }}>
-        <Toolbar sx={{ borderRadius: "0 !important",backgroundColor: "#d8d8d7ff", minHeight: "45px !important", p: 0 }}>
+        <Toolbar sx={{ borderRadius: "0 !important",backgroundColor: "#ecedeeff", minHeight: "45px !important", p: 0 }}>
           <Typography variant="h6" sx={{ fontWeight: 500 }}>
             Data Stack
           </Typography>
