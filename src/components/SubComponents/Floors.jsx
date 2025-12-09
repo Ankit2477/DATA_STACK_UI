@@ -1,44 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { PropertyTable } from "./PropertyTable";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import axiosClient from "../../utils/axiosClient";
+import { useParams } from "react-router-dom";
 
 export default function FloorInfo() {
-  const [floors, setFloors] = useState([
+  const { id } = useParams();
+
+  const [floors, setFloors] = useState([]);
+
+  const [sources] = useState([
     {
-      id: 21,
-      edpData: {
-        source: "EDP",
-        date: "11/20/25",
-        floorNumber: "21",
-        floorName: "21st Floor",
-        floorSize: "120,000",
-        slabHeight: "150.00",
-      },
-      sourceData: {
-        floorNumber: "21",
-        floorName: "Floor 21",
-        floorSize: "120,000",
-        slabHeight: "150.00",
-      },
+      id: "edp", source: "EDP", date: "11/20/25",
+      floorNumber: "21",
+      floorName: "21st Floor",
+      floorSize: "120,000",
+      slabHeight: "150.00",
     },
     {
-      id: 1000,
-      edpData: {
-        source: "EDP",
-        date: "11/20/25",
-        floorNumber: "1000",
-        floorName: "",
-        floorSize: "",
-        slabHeight: "",
-      },
-      sourceData: {
-        floorNumber: "1000",
-        floorName: "Test 1000",
-        floorSize: "",
-        slabHeight: "",
-      },
-    },
+      id: "legacy", source: "LEGACY", date: "01/03/2025",
+      floorNumber: "44",
+      floorName: "44th Floor",
+      floorSize: "140,000",
+      slabHeight: "180.00",
+    }
   ]);
 
   const tableHeaders = [
@@ -49,61 +35,109 @@ export default function FloorInfo() {
     { key: "slabHeight", label: "SLAB HEIGHT", required: true },
   ];
 
-  const handleSourceChange = (id, newData) => {
-    setFloors((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, sourceData: newData } : f
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axiosClient.get("/propDetails/getFloorsById/" + id);
+        const records = res.data.data || [];
+
+        const mapped = records.map(f => ({
+          id: f.floorNumber,
+          floorId: f._id,            // use this to send
+          sourceData: {
+            floorNumber: f.floorNumber,
+            floorName: f.floorName,
+            floorSize: f.floorSize,
+            slabHeight: f.slabHeight,
+            nra: f.nra || ""          // safe default
+          }
+        }));
+
+        setFloors(mapped);
+
+      } catch (error) {
+        console.log("API ERROR:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+
+
+  /** update floor table values */
+  const handleSourceDataChange = (floorId, newData) => {
+    setFloors(prev =>
+      prev.map(f =>
+        f.id === floorId
+          ? { ...f, sourceData: { ...f.sourceData, ...newData } }
+          : f
       )
     );
   };
 
+  const handleSendToEDP = async (floor) => {
+  try {
+    console.log("Preparing to send floor to EDP:", floor);
+    const payload = {
+      floorId: floor.floorId,
+      floorNumber: floor.sourceData.floorNumber,
+      floorName: floor.sourceData.floorName,
+      floorSize: floor.sourceData.floorSize,
+      slabHeight: floor.sourceData.slabHeight
+    };
+
+    console.log("Sending Payload:", payload);
+
+    await axiosClient.put("/propDetails/updateFloor/" + id, payload);
+
+    alert("Sent to EDP successfully");
+    
+  } catch (err) {
+    console.error("Send to EDP Error", err);
+    alert("Something went wrong");
+  }
+};
+
+
+
   return (
     <Box sx={{ width: "100%" }}>
-    <Box sx={{ml: 2, mb: 2,mt:1,pb: 1}}>
-        <Stack spacing={1} alignItems="left">
-        <Typography
+      <Box sx={{ ml: 2, mb: 2, mt: 1, pb: 1 }}>
+        <Stack spacing={1}>
+          <Typography
             sx={{
-            fontSize: 14,
-            fontWeight: 600,
-            mb: 2,
-            ml: 1,
-            color: "#111827",
+              fontSize: 14,
+              fontWeight: 600,
+              mb: 2,
+              ml: 1,
+              color: "#111827",
             }}
-        >
+          >
             Floor Info
-        </Typography>
-        <FilterListIcon sx={{ color: "#065F46" }} fontSize="small" />
-        <Typography
-            sx={{
-            fontSize: 12,
-            color: "#065F46",
-            fontWeight: 550,
-            }}
-        >
+          </Typography>
+
+          <FilterListIcon sx={{ color: "#065F46" }} fontSize="small" />
+
+          <Typography sx={{ fontSize: 12, color: "#065F46", fontWeight: 550 }}>
             Sources
-        </Typography>
+          </Typography>
         </Stack>
-    </Box>
-    <Box sx={{borderBottom: "1px solid #E5E7EB", mb: 2}}>
-    </Box>
+      </Box>
+
+      <Box sx={{ borderBottom: "1px solid #E5E7EB", mb: 2 }}></Box>
 
       <Box
         sx={{
           height: "calc(100vh - 180px)",
           overflowY: "auto",
           pr: 2,
-          ml:2
+          ml: 2
         }}
       >
         {floors.map((floor) => (
-          <Box
-            key={floor.id}
-            sx={{
-              bgcolor: "#fff",
-              border: "1px solid #E5E7EB",
-              mb: 4,
-            }}
-          >
+          <Box key={floor.id} sx={{ bgcolor: "#fff", border: "1px solid #E5E7EB", mb: 4 }}>
+
             <Box
               sx={{
                 display: "flex",
@@ -144,29 +178,19 @@ export default function FloorInfo() {
                     color: "#065F46",
                     textTransform: "none",
                   }}
+                  onClick={() => handleSendToEDP(floor)}
                 >
                   SEND TO EDP
                 </Button>
               </Stack>
             </Box>
 
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                px: 2,
-                py: 1.5,
-                alignItems: "center",
-              }}
-            >
-            </Box>
-
             <PropertyTable
               headers={tableHeaders}
               sourceData={floor.sourceData}
-              edpData={floor.edpData}
+              sources={sources}
               onSourceDataChange={(newData) =>
-                handleSourceChange(floor.id, newData)
+                handleSourceDataChange(floor.id, newData)
               }
             />
           </Box>

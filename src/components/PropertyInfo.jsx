@@ -6,6 +6,12 @@ import { Stack, Box, Typography, Button, Grid, Divider } from "@mui/material";
 import AntSwitch from "./SubComponents/Buttons/AntSwitch";
 import axiosClient from "../utils/axiosClient";
 
+const formatYearToDate = (value) => {
+  const year = new Date(value).getFullYear();
+  return `${year}-01-01`;
+};
+
+
 export default function PropertyInfo() {
   const { id } = useParams();
 
@@ -19,23 +25,17 @@ export default function PropertyInfo() {
     floors: "21",
   });
 
-  const [sourceData, setSourceData] = useState({
-    propertyName: "Metropolitan Square",
-    grossArea: "525,000",
-    nra: "525,105",
-    officeNra: "525,101",
-    floors: "21",
-  });
+  const [sourceData, setSourceData] = useState({});
   const [sources] = useState(
     [
       { id: "edp", source: "EDP", date: "01/01/2025",     propertyName: "Metropolitan Square",
-    grossArea: "525",
+    grossArea: "525,000",
     nra: "525,105",
-    officeNra: "525,10",
+    officeNra: "525,101",
     floors: "21" 
      },
     { id: "legacy", source: "LEGACY", date: "01/03/2025",     propertyName: "Time Square",
-    grossArea: "725,0",
+    grossArea: "725,000",
     nra: "525",
     officeNra: "825,101",
     floors: "22" 
@@ -54,19 +54,20 @@ export default function PropertyInfo() {
     const fetchData = async () => {
       try {
         const res = await axiosClient.get("/propDetails/getDetailById/" + id);
-        const records = res.data?.payload || [];
-
-        if (records.length > 0) {
-          const api = records[records.length - 1];
+        const records = res.data.data || [];
           setSourceData(prev => ({
             ...prev,
-            propertyName: api.propertyName || prev.propertyName,
-            grossArea: api.grossArea || prev.grossArea,
-            nra: api.nra || prev.nra,
-            officeNra: api.officeNra || prev.officeNra,
-            floors: api.floorCount ? String(api.floorCount) : prev.floors,
+            propertyName: records.propertyId.propertyName || prev.propertyName,
+            grossArea: records.grossArea || prev.grossArea,
+            nra: records.nra || prev.nra,
+            officeNra: records.officeNra || prev.officeNra,
+            class: records.class || prev.class,
+            yearBuilt: records.yearBuilt || prev.yearBuilt,
+            lastRenovated: records.lastRenovated
+            ? formatYearToDate(records.lastRenovated)
+            : prev.lastRenovated,
+            floors: records.floorCount ? String(records.floorCount) : prev.floors,
           }));
-        }
 
       } catch (error) {
         console.log("API ERROR:", error);
@@ -167,7 +168,7 @@ const handleSendToEDP = async () => {
                     NRA
                   </Typography>
                   <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 600 }}>
-                    { sourceData.nra || "525,105 SF" }
+                    { sourceData.nra }
                   </Typography>
                 </Box>
                 <Box sx={{ mb: 3 }}>
