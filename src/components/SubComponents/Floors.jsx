@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { PropertyTable } from "./PropertyTable";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 export default function FloorInfo() {
   const [floors, setFloors] = useState([
