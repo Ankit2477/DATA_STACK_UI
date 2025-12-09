@@ -78,7 +78,6 @@ export default function FloorInfo() {
     try {
       const payload = {
         floorId: floor.floorId,
-        floorNumber: floor.sourceData.floorNumber,
         floorName: floor.sourceData.floorName,
         floorSize: floor.sourceData.floorSize,
         slabHeight: floor.sourceData.slabHeight

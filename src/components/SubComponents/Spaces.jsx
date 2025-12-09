@@ -149,7 +149,6 @@ useEffect(() => {
     try {
       const payload = {
         spaceId: space.spaceId,
-        floorNumber: space.sourceData.floorNumber,
         suiteNumber: space.sourceData.suiteNumber,
         tenant: space.sourceData.tenant,
         spaceSize: space.sourceData.spaceSize,
